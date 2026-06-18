@@ -1,0 +1,798 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+    --primary: hsl(263, 70%, 50%);
+    --primary-light: hsl(263, 70%, 95%);
+    --primary-dark: hsl(263, 70%, 35%);
+    --secondary: hsl(330, 81%, 60%);
+    --success: hsl(142, 72%, 29%);
+    --success-light: hsl(142, 72%, 95%);
+    --warning: hsl(38, 92%, 50%);
+    --warning-light: hsl(38, 92%, 95%);
+    --danger: hsl(350, 89%, 60%);
+    --danger-light: hsl(350, 89%, 95%);
+    --dark: hsl(215, 25%, 20%);
+    --dark-bg: hsl(222, 47%, 11%);
+    --light-bg: hsl(210, 40%, 98%);
+    --border-color: hsl(214, 32%, 91%);
+    --text-primary: hsl(215, 25%, 27%);
+    --text-secondary: hsl(215, 16%, 47%);
+    --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Inter', 'Poppins', sans-serif;
+    background-color: var(--light-bg);
+    color: var(--text-primary);
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+a {
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+a:hover {
+    text-decoration: none;
+}
+
+/* --- Layout Wrapper --- */
+.wrapper {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* --- Sidebar --- */
+#sidebar {
+    min-width: 260px;
+    max-width: 260px;
+    background: var(--dark-bg);
+    color: #fff;
+    transition: var(--transition);
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    box-shadow: 4px 0 25px rgba(0, 0, 0, 0.15);
+}
+
+#sidebar.active {
+    margin-left: -260px;
+}
+
+#sidebar .sidebar-header {
+    padding: 24px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: #fff;
+    text-align: center;
+}
+
+#sidebar .sidebar-header h4 {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    font-size: 1.25rem;
+    margin-bottom: 2px;
+}
+
+#sidebar .sidebar-header span {
+    font-size: 0.75rem;
+    opacity: 0.8;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+#sidebar ul.components {
+    padding: 20px 0;
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+#sidebar ul li {
+    padding: 2px 15px;
+}
+
+#sidebar ul li a {
+    padding: 12px 18px;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    color: hsl(215, 20%, 75%);
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+#sidebar ul li a i {
+    margin-right: 12px;
+    font-size: 1.25rem;
+}
+
+#sidebar ul li a:hover, 
+#sidebar ul li a.active_link {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: inset 4px 0 0 var(--secondary);
+}
+
+#sidebar .sidebar-footer {
+    padding: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    text-align: center;
+}
+
+/* --- Main Content Area --- */
+#content {
+    flex-grow: 1;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    transition: var(--transition);
+}
+
+/* --- Top Navbar --- */
+.navbar {
+    padding: 15px 30px;
+    background: #fff;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+}
+
+.page-name {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 1.3rem;
+    color: var(--dark);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.user-profile-nav {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.user-badge {
+    background: var(--primary-light);
+    color: var(--primary);
+    padding: 4px 12px;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+/* --- Main Dashboard Container --- */
+.main-content {
+    padding: 30px;
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+/* --- Dashboard Stat Cards --- */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--card-shadow);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--primary);
+}
+
+.stat-card.secondary::before { background: var(--secondary); }
+.stat-card.success::before { background: var(--success); }
+.stat-card.warning::before { background: var(--warning); }
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.1);
+}
+
+.stat-info h3 {
+    font-size: 2.2rem;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    color: var(--dark);
+    line-height: 1.2;
+}
+
+.stat-info p {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    background: var(--primary-light);
+    color: var(--primary);
+}
+
+.stat-card.secondary .stat-icon {
+    background: hsl(330, 81%, 95%);
+    color: var(--secondary);
+}
+
+.stat-card.success .stat-icon {
+    background: var(--success-light);
+    color: var(--success);
+}
+
+.stat-card.warning .stat-icon {
+    background: var(--warning-light);
+    color: var(--warning);
+}
+
+/* --- Premium Panel / Card --- */
+.card-panel {
+    background: #fff;
+    border-radius: 16px;
+    padding: 30px;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--card-shadow);
+    margin-bottom: 30px;
+    transition: var(--transition);
+}
+
+.card-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 20px;
+    margin-bottom: 25px;
+}
+
+.card-panel-title {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 1.15rem;
+    color: var(--dark);
+}
+
+/* --- Premium Tables --- */
+.table-responsive {
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+}
+
+.table {
+    margin-bottom: 0;
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th {
+    background-color: var(--light-bg);
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid var(--border-color);
+    padding: 16px 20px;
+    text-align: left;
+}
+
+.table td {
+    padding: 16px 20px;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.9rem;
+    color: var(--text-primary);
+}
+
+.table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.table tbody tr:hover {
+    background-color: var(--primary-light);
+}
+
+/* --- Form Elements --- */
+.form-group label {
+    font-weight: 500;
+    font-size: 0.88rem;
+    color: var(--dark);
+    margin-bottom: 8px;
+    display: block;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: 1.5px solid var(--border-color);
+    background-color: #fff;
+    color: var(--text-primary);
+    font-size: 0.92rem;
+    transition: var(--transition);
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.15);
+}
+
+/* --- Premium Buttons --- */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.88rem;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: var(--transition);
+    border: none;
+    gap: 8px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: #fff;
+}
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(109, 40, 217, 0.4);
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, var(--secondary), hsl(330, 81%, 50%));
+    color: #fff;
+}
+.btn-secondary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4);
+}
+
+.btn-light {
+    background-color: #fff;
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+.btn-light:hover {
+    background-color: var(--light-bg);
+}
+
+.btn-danger {
+    background: var(--danger);
+    color: #fff;
+}
+.btn-danger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(244, 63, 94, 0.4);
+}
+
+/* --- Custom Seating Matrix Grid --- */
+.seating-grid-container {
+    background-color: #fff;
+    padding: 24px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    margin-top: 20px;
+}
+
+.seating-matrix {
+    display: grid;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.seating-desk {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+    background-color: var(--light-bg);
+    min-height: 85px;
+    min-width: 100px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: var(--transition);
+    font-size: 0.75rem;
+}
+
+.seating-desk:hover {
+    transform: scale(1.05);
+    box-shadow: var(--card-shadow);
+}
+
+.seating-desk .seat-no {
+    font-weight: 700;
+    color: var(--text-secondary);
+    border-bottom: 1px dashed var(--border-color);
+    padding-bottom: 2px;
+}
+
+.seating-desk .student-name {
+    font-weight: 600;
+    color: var(--dark);
+    word-break: break-word;
+    margin: 4px 0;
+}
+
+.seating-desk .student-class {
+    font-size: 0.65rem;
+    color: #fff;
+    padding: 2px 4px;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.seating-desk.vacant {
+    background-color: var(--primary-light);
+    border-color: rgba(109, 40, 217, 0.2);
+    justify-content: center;
+}
+.seating-desk.vacant span {
+    color: var(--primary);
+    font-weight: 600;
+}
+
+/* Color codes for mixed branches */
+.bg-class-1 { background-color: #6366f1; }
+.bg-class-2 { background-color: #ec4899; }
+.bg-class-3 { background-color: #10b981; }
+.bg-class-4 { background-color: #f59e0b; }
+.bg-class-5 { background-color: #8b5cf6; }
+
+/* --- Login UI --- */
+.login-body {
+    background: linear-gradient(135deg, hsl(222, 47%, 11%), hsl(263, 70%, 15%));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: 'Poppins', sans-serif;
+}
+
+.login-card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    padding: 40px;
+    width: 100%;
+    max-width: 440px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    color: #fff;
+    animation: fadeInUp 0.6s ease;
+}
+
+.login-card h2 {
+    font-weight: 700;
+    font-size: 1.8rem;
+    text-align: center;
+    margin-bottom: 5px;
+    background: linear-gradient(135deg, #fff, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.login-card p.subtitle {
+    text-align: center;
+    color: hsl(215, 20%, 75%);
+    font-size: 0.88rem;
+    margin-bottom: 30px;
+}
+
+.login-card label {
+    color: hsl(215, 20%, 85%);
+    font-weight: 500;
+    font-size: 0.85rem;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.login-card .form-control {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.login-card .form-control:focus {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: var(--secondary);
+}
+
+.login-card select.form-control option {
+    background-color: var(--dark-bg);
+    color: #fff;
+}
+
+.login-card button.btn-submit {
+    width: 100%;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: #fff;
+    font-weight: 600;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 1rem;
+    margin-top: 15px;
+    box-shadow: 0 4px 20px rgba(109, 40, 217, 0.3);
+}
+
+.login-card button.btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(109, 40, 217, 0.5);
+}
+
+/* --- QR Code Display --- */
+.qr-code-img {
+    border: 1px solid var(--border-color);
+    padding: 8px;
+    border-radius: 8px;
+    background: white;
+}
+
+/* --- Hall Ticket Styling --- */
+.hall-ticket-container {
+    max-width: 800px;
+    margin: 0 auto 30px;
+    background: #fff;
+    border: 3px double var(--dark);
+    padding: 30px;
+    border-radius: 12px;
+    position: relative;
+}
+
+.hall-ticket-header {
+    display: flex;
+    align-items: center;
+    border-bottom: 3px solid var(--dark);
+    padding-bottom: 20px;
+    margin-bottom: 25px;
+}
+
+.college-logo-container {
+    flex-shrink: 0;
+    width: 80px;
+    height: 80px;
+    background-color: var(--primary-light);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 20px;
+    border: 2px solid var(--primary);
+}
+
+.college-details {
+    flex-grow: 1;
+}
+
+.college-details h1 {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 800;
+    font-size: 1.6rem;
+    color: var(--dark);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    line-height: 1.2;
+}
+
+.college-details p {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.hall-ticket-title {
+    text-align: center;
+    font-size: 1.3rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 25px;
+    color: var(--dark);
+    text-decoration: underline;
+}
+
+.student-info-grid {
+    display: grid;
+    grid-template-columns: 3fr 1fr;
+    gap: 30px;
+    margin-bottom: 30px;
+}
+
+.student-text-details {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px 20px;
+}
+
+.info-item {
+    font-size: 0.9rem;
+}
+
+.info-item strong {
+    color: var(--dark);
+    font-weight: 600;
+    display: inline-block;
+    width: 100px;
+}
+
+.student-photo-box {
+    width: 120px;
+    height: 140px;
+    border: 2px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--light-bg);
+    margin-left: auto;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    border-radius: 6px;
+    text-transform: uppercase;
+}
+
+.hall-ticket-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-top: 40px;
+    border-top: 1px solid var(--border-color);
+    padding-top: 25px;
+}
+
+.signature-box {
+    text-align: center;
+    width: 180px;
+}
+
+.signature-line {
+    border-top: 1.5px solid var(--dark);
+    margin-top: 40px;
+    padding-top: 5px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: var(--dark);
+}
+
+.exam-instructions {
+    background-color: var(--light-bg);
+    border-radius: 8px;
+    padding: 20px;
+    border: 1px solid var(--border-color);
+    margin-top: 30px;
+}
+
+.exam-instructions h5 {
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    color: var(--dark);
+    margin-bottom: 10px;
+}
+
+.exam-instructions ul {
+    padding-left: 20px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.exam-instructions ul li {
+    margin-bottom: 6px;
+}
+
+/* --- Responsive Media Queries --- */
+@media (max-width: 991.98px) {
+    #sidebar {
+        margin-left: -260px;
+    }
+    #sidebar.active {
+        margin-left: 0;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .main-content {
+        padding: 15px;
+    }
+    .navbar {
+        padding: 15px;
+    }
+    .student-info-grid {
+        grid-template-columns: 1fr;
+    }
+    .student-photo-box {
+        margin: 0 auto;
+    }
+}
+
+/* --- Print Styles --- */
+@media print {
+    body {
+        background: #fff !important;
+        color: #000 !important;
+    }
+    
+    #sidebar, .navbar, .btn, .no-print {
+        display: none !important;
+    }
+    
+    #content {
+        height: auto !important;
+        overflow: visible !important;
+        width: 100% !important;
+    }
+    
+    .main-content {
+        padding: 0 !important;
+    }
+    
+    .hall-ticket-container {
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+    }
+    
+    .exam-instructions {
+        page-break-inside: avoid;
+    }
+}
+
+/* --- Animations --- */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

@@ -1,0 +1,139 @@
+url_shortener/
+├── app.py              # Backend code (Flask)
+└── templates/
+    └── index.html      # Frontend code (HTML)
+# app.py
+
+from flask import Flask, request, jsonify, redirect, render_template
+import random
+import string
+
+app = Flask(__name__)
+
+# In-memory storage for shortened URLs
+url_mapping = {}
+
+def generate_short_url(length=6):
+    """Generates a random short URL."""
+    characters = string.ascii_letters + string.digits
+    short_url = ''.join(random.choice(characters) for _ in range(length))
+    return short_url
+
+@app.route('/')
+def index():
+    """Render the main page for URL shortening."""
+    return render_template('index.html')
+
+@app.route('/shorten', methods=['POST'])
+def shorten_url():
+    """API endpoint to shorten the URL."""
+    original_url = request.form['url']
+    short_url = generate_short_url()
+
+    # Ensure the short URL is unique
+    while short_url in url_mapping:
+        short_url = generate_short_url()
+
+    url_mapping[short_url] = original_url
+    return jsonify({'short_url': request.host_url + short_url})
+
+@app.route('/<short_url>')
+def redirect_url(short_url):
+    """Redirect to the original URL based on the shortened URL."""
+    original_url = url_mapping.get(short_url)
+    if original_url:
+        return redirect(original_url)
+    return "URL not found", 404
+
+if __name__ == '__main__':
+    app.run(debug=True)
+<!-- templates/index.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Shortener</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #5cb85c;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #4cae4c;
+        }
+
+        #result {
+            margin-top: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>URL Shortener</h1>
+        <form id="urlForm">
+            <input type="url" id="urlInput" placeholder="Enter URL here..." required>
+            <button type="submit">Shorten</button>
+        </form>
+        <div id="result"></div>
+    </div>
+    <script>
+        document.getElementById('urlForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const url = document.getElementById('urlInput').value;
+
+            fetch('/shorten', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `url=${encodeURIComponent(url)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('result').innerHTML = `<p>Short URL: <a href="${data.short_url}" target="_blank">${data.short_url}</a></p>`;
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    </script>
+</body>
+</html>
+pip install Flask
+python app.py
+

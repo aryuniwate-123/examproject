@@ -1,0 +1,46 @@
+LOG START 2026-02-04 20:22:23
+Request: Allocating 4 (Start 100 to 103). Selected Room ID: 42
+Found 2 rooms. Start Index: 0
+Checking Room ID 42 (No: 1). Cap: 2, Filled: 0, Avail: 2
+  -> Allocating 2 students. Range: 100 to 101
+Checking Room ID 43 (No: 2). Cap: 2, Filled: 0, Avail: 2
+  -> Allocating 2 students. Range: 102 to 103
+Success: All allocated.
+LOG START 2026-02-04 20:31:15
+Request: Allocating 4 (Start 1 to 4). Selected Room ID: 44
+Found 4 rooms. Start Index: 2
+Checking Room ID 44 (No: 3). Cap: 2, Filled: 0, Avail: 2
+  -> Allocating 2 students. Range: 1 to 2
+Checking Room ID 45 (No: 4). Cap: 2, Filled: 0, Avail: 2
+  -> Allocating 2 students. Range: 3 to 4
+Success: All allocated.
+LOG START 2026-02-05 07:20:54
+Request: Allocating 6 (Start 100 to 105). Selected Room ID: 47
+Found 1 rooms. Start Index: 0
+Checking Room ID 47 (No: 1). Cap: 30, Filled: 0, Avail: 30
+  -> Allocating 6 students. Range: 100 to 105
+Success: All allocated.
+LOG START 2026-02-05 07:26:03
+Request: Allocating 19 (Start 106 to 124). Selected Room ID: 47
+Found 1 rooms. Start Index: 0
+Checking Room ID 47 (No: 1). Cap: 30, Filled: 6, Avail: 24
+  -> Allocating 19 students. Range: 106 to 124
+Success: All allocated.
+LOG START 2026-02-05 07:40:55
+Request: Allocating 2 (Start 100 to 101). Selected Room ID: 47
+Found 1 rooms. Start Index: 0
+Checking Room ID 47 (No: 1). Cap: 30, Filled: 0, Avail: 30
+  -> Allocating 2 students. Range: 100 to 101
+Success: All allocated.
+LOG START 2026-02-18 14:24:46
+Request: Allocating 2 (Start 103 to 104). Selected Room ID: 47
+Found 1 rooms. Start Index: 0
+Checking Room ID 47 (No: 1). Cap: 30, Filled: 0, Avail: 30
+  -> Allocating 2 students. Range: 103 to 104
+Success: All allocated.
+LOG START 2026-05-04 20:22:25
+Request: Allocating 2 (Start 1 to 2). Selected Room ID: 47
+Found 1 rooms. Start Index: 0
+Checking Room ID 47 (No: 1). Cap: 30, Filled: 2, Avail: 28
+  -> Allocating 2 students. Range: 1 to 2
+Success: All allocated.
