@@ -1,161 +1,163 @@
-<html>
-<head>
-    <title>Manage Classes</title>
-    <link rel="stylesheet" href="common.css">
-    <?php include'../link.php' ?>
-    <style type="text/css">
-    </style>
-    </head>
-<body>
 <?php
-    session_start();
-    if(isset($_POST['deleteclass'])){
-        $class = $_POST['deleteclass'];
-        $delete = "delete from class where class_id = '$class'";
-        $delete_query = mysqli_query($conn, $delete);
-        if($delete_query){
-            $_SESSION['delete'] = "Class deleted successfully";
-        }
-        else{
-            $_SESSION['deletenot'] = "Error!! Class not deleted.";
+$required_role = 'admin';
+$active_menu = 'classes';
+$page_title = 'Manage Classes';
+include_once '../includes/header.php';
+
+// Add Class Handler
+if (isset($_POST['addclass'])) {
+    $year = trim($_POST['year']);
+    $dept = trim($_POST['dept']);
+    $div = trim($_POST['div']);
+
+    if (empty($year) || empty($dept) || empty($div)) {
+        $_SESSION['error_msg'] = "All fields are required.";
+    } else {
+        // Check if class already exists
+        $check_sql = "SELECT class_id FROM class WHERE year = ? AND dept = ? AND division = ?";
+        $stmt = mysqli_prepare($conn, $check_sql);
+        mysqli_stmt_bind_param($stmt, "sss", $year, $dept, $div);
+        mysqli_stmt_execute($stmt);
+        mysqli_stmt_store_result($stmt);
+
+        if (mysqli_stmt_num_rows($stmt) > 0) {
+            $_SESSION['error_msg'] = "This class division already exists.";
+            mysqli_stmt_close($stmt);
+        } else {
+            mysqli_stmt_close($stmt);
+            
+            // Insert class
+            $insert_sql = "INSERT INTO class (year, dept, division) VALUES (?, ?, ?)";
+            $stmt = mysqli_prepare($conn, $insert_sql);
+            mysqli_stmt_bind_param($stmt, "sss", $year, $dept, $div);
+            if (mysqli_stmt_execute($stmt)) {
+                $_SESSION['success_msg'] = "Class added successfully.";
+            } else {
+                $_SESSION['error_msg'] = "Failed to add class. Database error.";
+            }
+            mysqli_stmt_close($stmt);
         }
     }
+    header("Location: add_class.php");
+    exit();
+}
+
+// Delete Class Handler
+if (isset($_POST['deleteclass'])) {
+    $class_id = (int)$_POST['deleteclass'];
+    
+    $delete_sql = "DELETE FROM class WHERE class_id = ?";
+    $stmt = mysqli_prepare($conn, $delete_sql);
+    mysqli_stmt_bind_param($stmt, "i", $class_id);
+    if (mysqli_stmt_execute($stmt)) {
+        $_SESSION['success_msg'] = "Class deleted successfully.";
+    } else {
+        $_SESSION['error_msg'] = "Failed to delete class. It might be referenced elsewhere.";
+    }
+    mysqli_stmt_close($stmt);
+    
+    header("Location: add_class.php");
+    exit();
+}
 ?>
-    <div class="wrapper">
-        <nav id="sidebar">
-            <div class="sidebar-header">
-                <h4>DASHBOARD</h4>   
+
+<div class="row">
+    <!-- Add Class Form -->
+    <div class="col-md-4 mb-4">
+        <div class="card-panel">
+            <div class="card-panel-header">
+                <h5 class="card-panel-title">Add New Class</h5>
             </div>
-            <ul class="list-unstyled components">
-                    <li>
-                        <a href="add_class.php" class="active_link"><img src="https://img.icons8.com/ios-filled/26/ffffff/google-classroom.png"/> Classes</a>
-                    </li>
-                    <li>
-                        <a href="add_student.php"><img src="https://img.icons8.com/ios-filled/25/ffffff/student-registration.png"/> Students</a>
-                    </li>
-                    <li>
-                        <a href="add_room.php"><img src="https://img.icons8.com/metro/25/ffffff/building.png"/> Rooms</a>
-                    </li>
-                    <li>
-                        <a href="dashboard.php"><img src="https://img.icons8.com/nolan/30/ffffff/summary-list.png"/> Allotment</a>
-                    </li>
-                </ul>
-            </nav>
-<div id="content">
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container-fluid">
-            <button type="button" id="sidebarCollapse" class="btn btn-info">
-                <img src="https://img.icons8.com/ios-filled/19/ffffff/menu--v3.png"/>
-            </button><span class="page-name"> Manage Classes</span>
-            <button class="btn btn-dark d-inline-block d-lg-none ml-auto" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <img src="https://img.icons8.com/ios-filled/19/ffffff/menu--v3.png"/>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="nav navbar-nav ml-auto">
-                    <li class="nav-item active">
-                        <a class="nav-link" href="../logout.php">Logout</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-    <div class="main-content">
-        <?php
-        if(isset($_SESSION['class'])){
-            echo "<div class='alert alert-warning alert-dismissible fade show' role='alert'>".$_SESSION['class']."<button class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button></div>";
-            unset($_SESSION['class']);
-        }
-        if(isset($_SESSION['classnot'])){
-            echo "<div class='alert alert-danger alert-dismissible fade show' role='alert'>".$_SESSION['classnot']."<button class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button></div>";
-            unset($_SESSION['classnot']);
-        }
-
-        if(isset($_SESSION['delete'])){
-            echo "<div class='alert alert-warning alert-dismissible fade show' role='alert'>".$_SESSION['delete']."<button class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button></div>";
-            unset($_SESSION['delete']);
-        }
-        if(isset($_SESSION['deletenot'])){
-            echo "<div class='alert alert-danger alert-dismissible fade show' role='alert'>".$_SESSION['deletenot']."<button class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button></div>";
-            unset($_SESSION['deletenot']);
-        }
-
-
-        ?>
-      
-    <div class="table-responsive border">
-            <table class="table table-hover text-center">
-                <thead class="thead-light">
-                    <tr>
-                        <th>Year</th>
-                        <th>Department</th>
-                        <th>Division</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <form action="addclass.php" method="post">
-                     <tr>
-                        <th class="py-3 bg-light">
-                            <select id="year" name="year" class="form-control">
-                                <option value="">--select--</option>
-                                <option value="FY">FY</option>
-                                <option value="SY">SY</option>
-                                <option value="TY">TY</option>
-                                <option value="LY">LY</option>
-                            </select>
-                        </th>
-                        <th class="py-3 bg-light">
-                            <select id="dept" name="dept" class="form-control">
-                                <option value="">--select--</option>
-                                <option value="MCA">MCA</option>
-                                <option value="MMS">MMS</option>
-                                <option value="BMS">BMS</option>
-                                <option value="BTECH">BTECH</option>
-                            </select>
-                        </th>
-                        <th class="py-3 bg-light">
-                            <select id="div" name="div" class="form-control">
-                                <option value="">--select--</option>
-                                <option value="A">A</option>
-                                <option value="B">B</option>
-                                <option value="C">C</option>
-                            </select>
-                        </th>
-                        <th class="py-3 bg-light">
-                            <button class="btn btn-primary" name="addclass">Add</button>
-                        </th>
-                    </tr>  
-                </form>
-                <?php
-                $selectclass = "Select * from class order by year, dept, division";
-                $selectclassquery = mysqli_query($conn, $selectclass);
-                if($selectclassquery){
-                    while ($row = mysqli_fetch_assoc($selectclassquery)) {
-                        echo "<tr>
-                        <td>".$row['year']."</td>
-                        <td>".$row['dept']."</td>
-                        <td>".$row['division']."</td>
-                        <form method='post'>
-                        <td>
-                            <button class='btn btn-light px-1 py-0' type='submit' value='".$row['class_id']."' name='deleteclass'>
-                                <img src='https://img.icons8.com/color/25/000000/delete-forever.png'/>
-                            </button>
-                        </td>
-                        </form>
-                    </tr>";
-                    }
-                }
-                else{
-                    echo "<tr><td>No classes available.</td></tr>";
-                }
-                ?>
-                </tbody>
-            </table>
+            <form method="post" action="add_class.php">
+                <div class="form-group mb-3">
+                    <label for="year">Year</label>
+                    <select name="year" id="year" class="form-control" required>
+                        <option value="">-- Select Year --</option>
+                        <option value="FY">FY (First Year)</option>
+                        <option value="SY">SY (Second Year)</option>
+                        <option value="TY">TY (Third Year)</option>
+                        <option value="LY">LY (Fourth Year)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group mb-3">
+                    <label for="dept">Department</label>
+                    <select name="dept" id="dept" class="form-control" required>
+                        <option value="">-- Select Department --</option>
+                        <option value="MCA">MCA</option>
+                        <option value="MMS">MMS</option>
+                        <option value="Computer">Computer Engineering</option>
+                        <option value="ETRX">ETRX Engineering</option>
+                        <option value="BMS">BMS</option>
+                    </select>
+                </div>
+                
+                <div class="form-group mb-3">
+                    <label for="div">Division</label>
+                    <select name="div" id="div" class="form-control" required>
+                        <option value="">-- Select Division --</option>
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                    </select>
+                </div>
+                
+                <button type="submit" name="addclass" class="btn btn-primary w-100 mt-3">
+                    <i class="la la-plus"></i> Add Class
+                </button>
+            </form>
         </div>
     </div>
+
+    <!-- Classes List Table -->
+    <div class="col-md-8 mb-4">
+        <div class="card-panel">
+            <div class="card-panel-header d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
+                <h5 class="card-panel-title mb-0">Active Classes</h5>
+                <div class="no-print">
+                    <input type="text" class="form-control form-control-sm" placeholder="Search class..." data-search-table="classes-table">
+                </div>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table" id="classes-table">
+                    <thead>
+                        <tr>
+                            <th>Year</th>
+                            <th>Department</th>
+                            <th>Division</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                        $select_sql = "SELECT * FROM class ORDER BY year, dept, division";
+                        $result = mysqli_query($conn, $select_sql);
+                        if (mysqli_num_rows($result) > 0) {
+                            while ($row = mysqli_fetch_assoc($result)) {
+                                echo "<tr>
+                                    <td>" . htmlspecialchars($row['year']) . "</td>
+                                    <td>" . htmlspecialchars($row['dept']) . "</td>
+                                    <td>" . htmlspecialchars($row['division']) . "</td>
+                                    <td class="text-end">
+                                        <form method="post" action="add_class.php" onsubmit="return confirm('Are you sure you want to delete this class? This will delete all mapping students and subjects!');' style='display:inline;'>
+                                            <input type='hidden' name='deleteclass' value='" . $row['class_id'] . "'>
+                                            <button type='submit' class='btn btn-light btn-sm text-danger p-1' title='Delete Class'>
+                                                <i class='la la-trash-alt' style='font-size:1.2rem;'></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>";
+                            }
+                        } else {
+                            echo "<tr><td colspan='4' class='text-center py-4 text-muted'>No classes registered in the system.</td></tr>";
+                        }
+                        ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
-<?php include'footer.php' ?>
-<script type="text/javascript">
-   
-</script>
+
+<?php include_once '../includes/footer.php'; ?>

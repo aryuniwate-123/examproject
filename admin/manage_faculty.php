@@ -2,7 +2,7 @@
 $required_role = 'admin';
 $active_menu = 'faculty';
 $page_title = 'Manage Faculty';
-include_once '../templates/header.php';
+include_once '../includes/header.php';
 
 // Add Faculty Handler
 if (isset($_POST['addfaculty'])) {
@@ -73,17 +73,17 @@ if (isset($_POST['deletefaculty'])) {
                 <h5 class="card-panel-title">Add New Faculty</h5>
             </div>
             <form method="post" action="">
-                <div class="form-group">
+                <div class="form-group mb-3">
                     <label for="fname">Full Name</label>
                     <input type="text" name="fname" id="fname" class="form-control" placeholder="Prof. Jane Doe" required>
                 </div>
                 
-                <div class="form-group">
+                <div class="form-group mb-3">
                     <label for="fmail">Email Address</label>
                     <input type="email" name="fmail" id="fmail" class="form-control" placeholder="jane.doe@college.com" required>
                 </div>
                 
-                <div class="form-group">
+                <div class="form-group mb-3">
                     <label for="fdept">Department</label>
                     <select name="fdept" id="fdept" class="form-control" required>
                         <option value="">-- Select Department --</option>
@@ -95,18 +95,18 @@ if (isset($_POST['deletefaculty'])) {
                     </select>
                 </div>
                 
-                <div class="form-group">
+                <div class="form-group mb-3">
                     <label for="fphone">Phone Number (Optional)</label>
                     <input type="text" name="fphone" id="fphone" class="form-control" placeholder="e.g. 9876543210">
                 </div>
                 
-                <div class="form-group">
-                    <label for="fpwd">Account Password</label>
-                    <input type="password" name="fpwd" id="fpwd" class="form-control" placeholder="Create secure password" required>
+                <div class="form-group mb-3">
+                    <label for="fpwd">Default Password</label>
+                    <input type="password" name="fpwd" id="fpwd" class="form-control" placeholder="Password" required>
                 </div>
                 
-                <button type="submit" name="addfaculty" class="btn btn-primary btn-block mt-4">
-                    <i class="la la-plus"></i> Register Faculty
+                <button type="submit" name="addfaculty" class="btn btn-primary w-100 mt-3">
+                    <i class="la la-user-plus"></i> Add Faculty
                 </button>
             </form>
         </div>
@@ -116,7 +116,7 @@ if (isset($_POST['deletefaculty'])) {
     <div class="col-lg-8 mb-4">
         <div class="card-panel">
             <div class="card-panel-header d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
-                <h5 class="card-panel-title mb-0">Registered Faculty Members</h5>
+                <h5 class="card-panel-title mb-0">Registered Faculty</h5>
                 <div class="no-print">
                     <input type="text" class="form-control form-control-sm" placeholder="Search faculty..." data-search-table="faculty-table">
                 </div>
@@ -130,7 +130,7 @@ if (isset($_POST['deletefaculty'])) {
                             <th>Email</th>
                             <th>Department</th>
                             <th>Phone</th>
-                            <th class="text-right">Actions</th>
+                            <th class="text-end">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -142,10 +142,10 @@ if (isset($_POST['deletefaculty'])) {
                                 echo "<tr>
                                     <td><strong>" . htmlspecialchars($row['name']) . "</strong></td>
                                     <td>" . htmlspecialchars($row['email']) . "</td>
-                                    <td>" . htmlspecialchars($row['dept']) . "</td>
-                                    <td>" . ($row['phone'] ? htmlspecialchars($row['phone']) : '<span class="text-muted">N/A</span>') . "</td>
-                                    <td class='text-right'>
-                                        <form method='post' action='' onsubmit='return confirm(\"Are you sure you want to delete this faculty member?\");' style='display:inline;'>
+                                    <td><span class='badge bg-light text-dark border'>" . htmlspecialchars($row['dept']) . "</span></td>
+                                    <td>" . htmlspecialchars($row['phone'] ? $row['phone'] : 'N/A') . "</td>
+                                    <td class="text-end">
+                                        <form method='post' action='' onsubmit='return confirm(\"Are you sure you want to delete this faculty member? This will clear all duty allocations!\");' style='display:inline;'>
                                             <input type='hidden' name='deletefaculty' value='" . $row['faculty_id'] . "'>
                                             <button type='submit' class='btn btn-light btn-sm text-danger p-1' title='Delete Faculty'>
                                                 <i class='la la-trash-alt' style='font-size:1.2rem;'></i>
@@ -155,7 +155,7 @@ if (isset($_POST['deletefaculty'])) {
                                 </tr>";
                             }
                         } else {
-                            echo "<tr><td colspan='5' class='text-center py-4 text-muted'>No faculty members registered in the system.</td></tr>";
+                            echo "<tr><td colspan='5' class='text-center py-4 text-muted'>No faculty registered in the system.</td></tr>";
                         }
                         ?>
                     </tbody>
@@ -165,4 +165,4 @@ if (isset($_POST['deletefaculty'])) {
     </div>
 </div>
 
-<?php include_once '../templates/footer.php'; ?>
+<?php include_once '../includes/footer.php'; ?>

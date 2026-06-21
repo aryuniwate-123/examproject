@@ -2,7 +2,7 @@
 $required_role = 'admin';
 $active_menu = 'seating';
 $page_title = 'Seating Allocation Generator';
-include_once '../templates/header.php';
+include_once '../includes/header.php';
 
 // Get unique slot options
 $slots_sql = "SELECT DISTINCT exam_date, start_time, end_time FROM exam_schedule ORDER BY exam_date, start_time";
@@ -164,7 +164,7 @@ if (isset($_POST['generate'])) {
     </div>
     
     <form method="get" action="" class="row align-items-end">
-        <div class="col-md-8 form-group mb-md-0">
+        <div class="col-md-8 form-group mb-3 mb-md-0">
             <label for="slot">Active Exam Slot</label>
             <select name="slot" id="slot" class="form-control" onchange="updateSlotFields(this)">
                 <option value="">-- Choose Exam Slot --</option>
@@ -183,7 +183,7 @@ if (isset($_POST['generate'])) {
             <input type="hidden" name="end" id="end" value="<?php echo htmlspecialchars($selected_end); ?>">
         </div>
         <div class="col-md-4">
-            <button type="submit" class="btn btn-primary btn-block">
+            <button type="submit" class="btn btn-primary w-100 py-2">
                 <i class="la la-filter"></i> Load Seating Details
             </button>
         </div>
@@ -207,15 +207,18 @@ if (isset($_POST['generate'])) {
     $sched_ids_str = implode(',', array_column($scheds, 'schedule_id'));
     
     // Check if seating is already generated
-    $alloc_q = mysqli_query($conn, "SELECT COUNT(*) FROM seating_allocation WHERE schedule_id IN ($sched_ids_str)");
-    $allocated_students = mysqli_fetch_row($alloc_q)[0];
+    $allocated_students = 0;
+    if (!empty($sched_ids_str)) {
+        $alloc_q = mysqli_query($conn, "SELECT COUNT(*) FROM seating_allocation WHERE schedule_id IN ($sched_ids_str)");
+        $allocated_students = mysqli_fetch_row($alloc_q)[0];
+    }
     ?>
     
     <div class="card-panel">
         <div class="card-panel-header d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
             <div>
                 <h5 class="card-panel-title">Active Exams in this Slot</h5>
-                <p class="mb-0 text-muted">
+                <p class="mb-0 text-muted small">
                     Slot Time: <?php echo date('d M Y', strtotime($selected_date)) . " (" . date('h:i A', strtotime($selected_start)) . " - " . date('h:i A', strtotime($selected_end)) . ")"; ?>
                 </p>
             </div>
@@ -257,7 +260,7 @@ if (isset($_POST['generate'])) {
                         $stud_cnt = mysqli_fetch_row($c_q)[0];
                         
                         echo "<tr>
-                            <td><span class='badge badge-info'>" . htmlspecialchars($sch['subject_code']) . "</span></td>
+                            <td><span class='badge bg-info text-dark'>" . htmlspecialchars($sch['subject_code']) . "</span></td>
                             <td>" . htmlspecialchars($sch['subject_name']) . "</td>
                             <td>" . htmlspecialchars($sch['year'] . " " . $sch['dept'] . " " . $sch['division']) . "</td>
                             <td>$stud_cnt Students</td>
@@ -270,7 +273,10 @@ if (isset($_POST['generate'])) {
     </div>
     
     <?php if ($allocated_students > 0): ?>
-        <h4 class="font-weight-bold mb-3 mt-4 text-dark">Visual Seating Arrangements (Alternate Colors)</h4>
+        <h4 class="font-weight-bold mb-3 mt-4 text-dark d-flex justify-content-between align-items-center">
+            <span>Visual Seating Arrangements</span>
+            <button onclick="window.print()" class="btn btn-light border no-print btn-sm"><i class="la la-print"></i> Print Charts</button>
+        </h4>
         
         <?php
         // Fetch rooms that have students allocated for this slot
@@ -311,16 +317,16 @@ if (isset($_POST['generate'])) {
             }
         ?>
             <div class="seating-grid-container mb-5 card-panel">
-                <div class="card-panel-header d-flex justify-content-between align-items-center pb-2 border-bottom-0 mb-3">
+                <div class="card-panel-header d-flex flex-column flex-sm-row justify-content-between align-items-sm-center pb-2 border-bottom-0 mb-3 gap-2">
                     <h5 class="font-weight-bold text-primary mb-0">Room <?php echo htmlspecialchars($room['room_no']); ?> (Floor <?php echo $room['floor']; ?>)</h5>
-                    <div>
+                    <div class="d-flex flex-wrap gap-1">
                         <!-- Color legends -->
                         <?php foreach ($room_classes as $c_id => $color_class): ?>
                             <?php 
                             $class_name_q = mysqli_query($conn, "SELECT year, dept, division FROM class WHERE class_id = $c_id");
                             $cn = mysqli_fetch_assoc($class_name_q);
                             ?>
-                            <span class="badge ml-2 text-white <?php echo $color_class; ?>">
+                            <span class="badge text-white <?php echo $color_class; ?>">
                                 <?php echo htmlspecialchars($cn['year'] . " " . $cn['dept'] . " " . $cn['division']); ?>
                             </span>
                         <?php endforeach; ?>
@@ -337,7 +343,7 @@ if (isset($_POST['generate'])) {
                                 ?>
                                 <div class="seating-desk">
                                     <span class="seat-no"><?php echo htmlspecialchars($cell['seat_no']); ?></span>
-                                    <div class="student-name" title="<?php echo htmlspecialchars($cell['stud_name']); ?>">
+                                    <div class="student-name text-truncate" title="<?php echo htmlspecialchars($cell['stud_name']); ?>">
                                         <?php 
                                         // Print short name
                                         $parts = explode(' ', $cell['stud_name']);
@@ -345,7 +351,7 @@ if (isset($_POST['generate'])) {
                                         ?>
                                     </div>
                                     <div class="student-class <?php echo $color; ?>">
-                                        Roll <?php echo htmlspecialchars($cell['rollno']); ?> (<?php echo htmlspecialchars($cell['dept']); ?>)
+                                        Roll <?php echo htmlspecialchars($cell['rollno']); ?>
                                     </div>
                                 </div>
                             <?php else: ?>
@@ -383,4 +389,4 @@ function updateSlotFields(select) {
 }
 </script>
 
-<?php include_once '../templates/footer.php'; ?>
+<?php include_once '../includes/footer.php'; ?>

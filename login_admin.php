@@ -1,165 +1,110 @@
 <?php
 session_start();
-include "db.php";
+require_once "includes/config.php";
 
-if(isset($_POST['submit'])){
-    $name = $_POST['name'];
-    $name = mysqli_real_escape_string($conn, $name);
-    $name = htmlentities($name);
-    $password = $_POST['password'];
-    $password = mysqli_real_escape_string($conn, $password);
-    $password = htmlentities($password);
-
-    $select_admin = "select name, password from admin where name='$name' and password='$password'";
-    $select_admin_query = mysqli_query($conn, $select_admin);
-    if(mysqli_num_rows($select_admin_query)>0){
-        $_SESSION['login'] = "admin";
+// Redirect if already logged in
+if (isset($_SESSION['role'])) {
+    if ($_SESSION['role'] === 'admin') {
         header('Location: admin/dashboard.php');
+        exit();
     }
-    else{
-        $_SESSION['loginmsg'] = "Incorrect Credentials";
+}
+
+$error = "";
+
+if (isset($_POST['submit'])) {
+    $name = trim($_POST['name']);
+    $password = trim($_POST['password']);
+
+    if (empty($name) || empty($password)) {
+        $error = "Please enter both credentials.";
+    } else {
+        // Query admin by name or email
+        $select_admin = "SELECT adminid, name, email, password FROM admin WHERE name = ? OR email = ? LIMIT 1";
+        if ($stmt = mysqli_prepare($conn, $select_admin)) {
+            mysqli_stmt_bind_param($stmt, "ss", $name, $name);
+            mysqli_stmt_execute($stmt);
+            $result = mysqli_stmt_get_result($stmt);
+
+            if ($row = mysqli_fetch_assoc($result)) {
+                // Verify password (supports hashed passwords)
+                if (password_verify($password, $row['password']) || $password === $row['password']) {
+                    // Rehash if plain text was stored
+                    if ($password === $row['password'] && password_needs_rehash($row['password'], PASSWORD_BCRYPT)) {
+                        $new_hash = password_hash($password, PASSWORD_BCRYPT);
+                        $update_sql = "UPDATE admin SET password = ? WHERE adminid = ?";
+                        if ($up_stmt = mysqli_prepare($conn, $update_sql)) {
+                            mysqli_stmt_bind_param($up_stmt, "si", $new_hash, $row['adminid']);
+                            mysqli_stmt_execute($up_stmt);
+                            mysqli_stmt_close($up_stmt);
+                        }
+                    }
+
+                    $_SESSION['role'] = "admin";
+                    $_SESSION['user_id'] = $row['adminid'];
+                    $_SESSION['user_name'] = $row['name'];
+                    $_SESSION['user_email'] = $row['email'];
+                    
+                    $_SESSION['success_msg'] = "Logged in successfully to Admin Portal.";
+                    header('Location: admin/dashboard.php');
+                    exit();
+                } else {
+                    $error = "Incorrect password.";
+                }
+            } else {
+                $error = "Incorrect username/email.";
+            }
+            mysqli_stmt_close($stmt);
+        } else {
+            $error = "Database query failed.";
+        }
     }
 }
 ?>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <link rel="stylesheet" href="css/style.css">
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Log in</title>
-    <style>
-        body {
-            background-color: #F3EBF6;
-            font-family: 'Ubuntu', sans-serif;
-        }
-
-        .main {
-            background-color: #FFFFFF;
-            width: 400px;
-            height: 400px;
-            margin: 5em auto;
-            border-radius: 1.5em;
-            box-shadow: 0px 11px 35px 2px rgba(0, 0, 0, 0.14);
-        }
-
-        .sign {
-            padding-top: 50px;
-            color: #8C55AA;
-            font-weight: bold;
-            font-size: 23px;
-        }
-
-        .name {
-            width: 76%;
-            color: rgb(38, 50, 56);
-            font-weight: 700;
-            font-size: 14px;
-            letter-spacing: 1px;
-            background: rgba(136, 126, 126, 0.04);
-            padding: 10px 20px;
-            border: none;
-            outline: none;
-            box-sizing: border-box;
-            border: 2px solid rgba(0, 0, 0, 0.02);
-            border-radius: 20px;
-            margin-left: 46px;
-            text-align: center;
-            margin-bottom: 27px;
-        }
-
-        form.form1 {
-            padding-top: 10px;
-        }
-
-        .pass {
-            width: 76%;
-            color: rgb(38, 50, 56);
-            font-weight: 700;
-            font-size: 14px;
-            letter-spacing: 1px;
-            background: rgba(136, 126, 126, 0.04);
-            padding: 10px 20px;
-            border: none;
-            border-radius: 20px;
-            outline: none;
-            box-sizing: border-box;
-            border: 2px solid rgba(0, 0, 0, 0.02);
-            margin-bottom: 50px;
-            margin-left: 46px;
-            text-align: center;
-            margin-bottom: 27px;
-        }
-
-        .name:focus,
-        .pass:focus {
-            border: 2px solid rgba(0, 0, 0, 0.18) !important;
-        }
-
-        .submit {
-            cursor: pointer;
-            border-radius: 5em;
-            color: #fff;
-            background: linear-gradient(to right, #9C27B0, #E040FB);
-            border: 0;
-            padding: 10px 40px;
-            margin-top: 10px;
-            margin-left: 35%;
-            font-size: 13px;
-            box-shadow: 0 0 20px 1px rgba(0, 0, 0, 0.04);
-            text-shadow: 0px 0px 3px rgba(117, 117, 117, 0.12);
-            color: #fff;
-        }
-
-        h1 {
-            text-align: center;
-            color: #9C27B0;
-            padding-top: 20px;
-            font-size: 28px;
-        }
-
-        h2 {
-            text-align: center;
-            color: #9C27B0;
-            padding-top: 30px;
-            font-size: 30px;
-        }
-
-        .login-div {
-            height: 30px;
-        }
-
-        .loginmsg {
-            text-align: center;
-            font-family: Georgia, serif;
-            color: red;
-        }
-
-        .role-msg {
-            font-family: Georgia, serif;
-            font-size: 0.9rem;
-        }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login | Smart Exam Seating</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome / LineAwesome Icons -->
+    <link rel="stylesheet" href="https://maxst.icons8.com/vue-static/landings/line-awesome/line-awesome/1.3.0/css/line-awesome.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="assets/css/style.css">
 </head>
-
-<body>
-    <h2>Guru Nanak Institute of Management Studies</h2>
-    <h1>Exam Seating Arrangement</h1>
-    <div class="main">
-        <p class="sign" align="center">ADMIN LOGIN</p>
-        <div class="login-div">
-            <p class="loginmsg">
-                <?php
-                if(isset($_SESSION['loginmsg'])){
-                    echo $_SESSION['loginmsg'];
-                    unset($_SESSION['loginmsg']);
-                }
-                ?>
-            </p>
-        </div>
-        <form class="form1" method="post">
-            <input class="name" name="name" type="text" align="center" placeholder="Enter Name">
-            <input class="pass" name="password" type="password" align="center" placeholder="Password">
-            <button class="submit" name="submit" type="submit" align="center">LOGIN</button>
-            <p align=center class="role-msg">Are you a student? <a href="login_student.php">Login Here</a></p>
+<body class="login-body">
+    <div class="login-card">
+        <h2>Smart Exam System</h2>
+        <p class="subtitle text-danger font-weight-bold text-uppercase">Admin Portal Access</p>
+        
+        <?php if (!empty($error)): ?>
+            <div class="alert alert-danger py-2" role="alert" style="font-size: 0.85rem;">
+                <i class="la la-exclamation-circle"></i> <?php echo htmlspecialchars($error); ?>
+            </div>
+        <?php endif; ?>
+        
+        <form method="post" action="">
+            <div class="mb-3">
+                <label for="name">Username or Email</label>
+                <input type="text" name="name" id="name" class="form-control" placeholder="Enter name or email" value="<?php echo isset($_POST['name']) ? htmlspecialchars($_POST['name']) : ''; ?>" required>
+            </div>
+            
+            <div class="mb-4">
+                <label for="password">Password</label>
+                <input type="password" name="password" id="password" class="form-control" placeholder="••••••••" required>
+            </div>
+            
+            <button type="submit" name="submit" class="btn btn-submit btn-danger w-100">
+                Access Admin Panel
+            </button>
+            
+            <div class="text-center mt-4">
+                <p class="mb-0 text-white-50 small">Are you a student? <a href="login_student.php" class="text-warning font-weight-bold">Student Portal</a></p>
+                <p class="mb-0 text-white-50 small">Are you faculty? <a href="login_faculty.php" class="text-info font-weight-bold">Faculty Portal</a></p>
+            </div>
+        </form>
     </div>
 </body>
 </html>
