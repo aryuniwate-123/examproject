@@ -2,7 +2,7 @@
 $required_role = 'admin';
 $active_menu = 'duty';
 $page_title = 'Faculty Duty Allocator';
-include_once '../templates/header.php';
+include_once '../includes/header.php';
 
 // Get unique slots options
 $slots_sql = "SELECT DISTINCT exam_date, start_time, end_time FROM exam_schedule ORDER BY exam_date, start_time";
@@ -87,7 +87,6 @@ if (isset($_POST['allocate'])) {
         // We need to allot one invigilator per active room
         // Since different subjects might share the same room in the same slot (because of mixed-branch seating),
         // we should map duties by (schedule_id, room_id).
-        // Let's find unique rooms, and assign a faculty member to that room for all schedules active in that room.
         
         $assigned_faculty_in_slot = []; // Prevent conflict: faculty can only be in one room in this slot
         
@@ -151,7 +150,7 @@ if (isset($_POST['allocate'])) {
     </div>
     
     <form method="get" action="" class="row align-items-end">
-        <div class="col-md-8 form-group mb-md-0">
+        <div class="col-md-8 form-group mb-3 mb-md-0">
             <label for="slot">Active Exam Slot</label>
             <select name="slot" id="slot" class="form-control" onchange="updateSlotFields(this)">
                 <option value="">-- Choose Exam Slot --</option>
@@ -170,7 +169,7 @@ if (isset($_POST['allocate'])) {
             <input type="hidden" name="end" id="end" value="<?php echo htmlspecialchars($selected_end); ?>">
         </div>
         <div class="col-md-4">
-            <button type="submit" class="btn btn-primary btn-block">
+            <button type="submit" class="btn btn-primary w-100 py-2">
                 <i class="la la-filter"></i> Load Duties Info
             </button>
         </div>
@@ -181,44 +180,44 @@ if (isset($_POST['allocate'])) {
     <?php
     // Fetch schedules in this slot
     $scheds = [];
-    $sched_q = mysqli_query($conn, "SELECT schedule_id FROM exam_schedule WHERE exam_date = '$selected_date' AND start_time = '$selected_start'");
-    while ($row = mysqli_fetch_assoc($sched_q)) {
+    $sched_q = mysqli_query($conn, "SELECT es.schedule_id FROM exam_schedule es WHERE es.exam_date = '$selected_date' AND es.start_time = '$selected_start'");
+    while($row = mysqli_fetch_assoc($sched_q)) {
         $scheds[] = $row['schedule_id'];
     }
     
-    $allocated_duties = 0;
-    if (!empty($scheds)) {
-        $sched_ids_str = implode(',', $scheds);
-        // Count active rooms in this slot
-        $rooms_cnt_q = mysqli_query($conn, "SELECT COUNT(DISTINCT room_id) FROM seating_allocation WHERE schedule_id IN ($sched_ids_str)");
-        $active_rooms_count = mysqli_fetch_row($rooms_cnt_q)[0];
+    $sched_ids_str = implode(',', $scheds);
+    
+    // Check if seating is already generated
+    $active_rooms_cnt = 0;
+    $duties_alloted = 0;
+    
+    if (!empty($sched_ids_str)) {
+        $room_cnt_q = mysqli_query($conn, "SELECT COUNT(DISTINCT room_id) FROM seating_allocation WHERE schedule_id IN ($sched_ids_str)");
+        $active_rooms_cnt = mysqli_fetch_row($room_cnt_q)[0];
         
-        // Count duties already allocated
-        $duties_cnt_q = mysqli_query($conn, "SELECT COUNT(DISTINCT room_id) FROM faculty_allocation WHERE schedule_id IN ($sched_ids_str)");
-        $allocated_duties = mysqli_fetch_row($duties_cnt_q)[0];
-    } else {
-        $active_rooms_count = 0;
+        $duties_q = mysqli_query($conn, "SELECT COUNT(*) FROM faculty_allocation WHERE schedule_id IN ($sched_ids_str)");
+        $duties_alloted = mysqli_fetch_row($duties_q)[0];
     }
     ?>
     
     <div class="card-panel">
         <div class="card-panel-header d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
             <div>
-                <h5 class="card-panel-title">Invigilator Allocations</h5>
-                <p class="mb-0 text-muted">
-                    Slot Rooms: <?php echo $active_rooms_count; ?> active classrooms requiring invigilators.
+                <h5 class="card-panel-title">Invigilation Slot Details</h5>
+                <p class="mb-0 text-muted small">
+                    Time Slot: <?php echo date('d M Y', strtotime($selected_date)) . " (" . date('h:i A', strtotime($selected_start)) . " - " . date('h:i A', strtotime($selected_end)) . ")"; ?>
                 </p>
             </div>
             
-            <?php if ($active_rooms_count > 0): ?>
-                <div>
+            <div>
+                <?php if ($active_rooms_cnt > 0): ?>
                     <form method="post" action="">
                         <input type="hidden" name="date" value="<?php echo htmlspecialchars($selected_date); ?>">
                         <input type="hidden" name="start" value="<?php echo htmlspecialchars($selected_start); ?>">
                         <input type="hidden" name="end" value="<?php echo htmlspecialchars($selected_end); ?>">
                         
-                        <?php if ($allocated_duties > 0): ?>
-                            <button type="submit" name="allocate" class="btn btn-secondary" onclick="return confirm('Invigilators are already allocated. Re-allocating will overwrite current mappings. Continue?');">
+                        <?php if ($duties_alloted > 0): ?>
+                            <button type="submit" name="allocate" class="btn btn-secondary" onclick="return confirm('Faculty invigilators are already allocated. Re-allocating will overwrite current workload. Continue?');">
                                 <i class="la la-redo"></i> Re-Allocate Invigilators
                             </button>
                         <?php else: ?>
@@ -227,89 +226,75 @@ if (isset($_POST['allocate'])) {
                             </button>
                         <?php endif; ?>
                     </form>
-                </div>
-            <?php endif; ?>
-        </div>
-        
-        <?php if ($allocated_duties > 0): ?>
-            <div class="table-responsive">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Room No</th>
-                            <th>Floor</th>
-                            <th>Invigilator Name</th>
-                            <th>Department</th>
-                            <th>Phone</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php
-                        $duties_q = mysqli_query($conn, "SELECT DISTINCT fa.room_id, r.room_no, r.floor, f.name as fac_name, f.dept, f.phone 
-                                                         FROM faculty_allocation fa 
-                                                         JOIN room r ON fa.room_id = r.rid 
-                                                         JOIN faculty f ON fa.faculty_id = f.faculty_id 
-                                                         WHERE fa.schedule_id IN ($sched_ids_str) 
-                                                         ORDER BY r.floor, r.room_no");
-                        while ($row = mysqli_fetch_assoc($duties_q)) {
-                            echo "<tr>
-                                <td><strong>Room " . htmlspecialchars($row['room_no']) . "</strong></td>
-                                <td>" . htmlspecialchars($row['floor']) . " Floor</td>
-                                <td><strong>" . htmlspecialchars($row['fac_name']) . "</strong></td>
-                                <td>" . htmlspecialchars($row['dept']) . "</td>
-                                <td>" . ($row['phone'] ? htmlspecialchars($row['phone']) : '<span class="text-muted">N/A</span>') . "</td>
-                            </tr>";
-                        }
-                        ?>
-                    </tbody>
-                </table>
-            </div>
-        <?php else: ?>
-            <div class="alert alert-warning py-3 text-center my-4">
-                <i class="la la-info-circle" style="font-size: 1.5rem; vertical-align: middle;"></i>
-                <?php if ($active_rooms_count == 0): ?>
-                    No seating arrangements generated for this slot. Seating must be completed before allocating faculty.
                 <?php else: ?>
-                    No invigilators assigned to this slot yet. Click "Auto-Allocate Invigilators" to run the fair load distribution algorithm.
+                    <button class="btn btn-light text-muted border font-weight-bold" disabled>
+                        Seating Roster Not Generated
+                    </button>
                 <?php endif; ?>
             </div>
-        <?php endif; ?>
-    </div>
-    
-    <!-- Overall duty loads summary to confirm fair distribution -->
-    <div class="card-panel">
-        <div class="card-panel-header">
-            <h5 class="card-panel-title">Cumulative Faculty Duty Workloads (Load Balancing Audit)</h5>
         </div>
+        
+        <div class="row text-center mb-4">
+            <div class="col-6 col-sm-3 border-end">
+                <h3 class="font-weight-bold text-dark mb-0"><?php echo $active_rooms_cnt; ?></h3>
+                <span class="text-muted small">Active Exam Rooms</span>
+            </div>
+            <div class="col-6 col-sm-3">
+                <h3 class="font-weight-bold text-dark mb-0"><?php echo $duties_alloted; ?></h3>
+                <span class="text-muted small">Assigned Invigilators</span>
+            </div>
+        </div>
+
         <div class="table-responsive">
             <table class="table">
                 <thead>
                     <tr>
-                        <th>Faculty Name</th>
+                        <th>Classroom</th>
+                        <th>Floor</th>
+                        <th>Invigilator Name</th>
                         <th>Department</th>
-                        <th>Total Duties Assigned (System Wide)</th>
+                        <th>Phone</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php
-                    $load_q = mysqli_query($conn, "SELECT f.name, f.dept, COUNT(fa.fac_allot_id) as duty_count 
-                                                   FROM faculty f 
-                                                   LEFT JOIN faculty_allocation fa ON f.faculty_id = fa.faculty_id 
-                                                   GROUP BY f.faculty_id 
-                                                   ORDER BY duty_count DESC, f.name ASC");
-                    while ($row = mysqli_fetch_assoc($load_q)) {
-                        echo "<tr>
-                            <td>" . htmlspecialchars($row['name']) . "</td>
-                            <td>" . htmlspecialchars($row['dept']) . "</td>
-                            <td>
-                                <div class='d-flex align-items-center gap-2'>
-                                    <span class='badge badge-dark px-3 py-1 font-weight-bold' style='min-width: 40px; text-align: center;'>" . $row['duty_count'] . "</span>
-                                    <div class='progress flex-grow-1 ml-3 d-none d-sm-flex' style='height: 8px; max-width: 150px;'>
-                                        <div class='progress-bar bg-success' style='width: " . ($row['duty_count'] * 15) . "%'></div>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>";
+                    <?php 
+                    if ($duties_alloted > 0) {
+                        // Query allocated duties
+                        $allot_sql = "SELECT DISTINCT r.room_no, r.floor, f.name as fac_name, f.dept as fac_dept, f.phone 
+                                      FROM faculty_allocation fa 
+                                      JOIN room r ON fa.room_id = r.rid 
+                                      JOIN faculty f ON fa.faculty_id = f.faculty_id 
+                                      WHERE fa.schedule_id IN ($sched_ids_str)
+                                      ORDER BY r.floor, r.room_no";
+                        $allot_res = mysqli_query($conn, $allot_sql);
+                        while ($row = mysqli_fetch_assoc($allot_res)) {
+                            echo "<tr>
+                                <td><strong>Room " . htmlspecialchars($row['room_no']) . "</strong></td>
+                                <td>" . htmlspecialchars($row['floor']) . " Floor</td>
+                                <td>Prof. " . htmlspecialchars($row['fac_name']) . "</td>
+                                <td><span class='badge bg-light text-dark border'>" . htmlspecialchars($row['fac_dept']) . "</span></td>
+                                <td>" . htmlspecialchars($row['phone'] ? $row['phone'] : 'N/A') . "</td>
+                            </tr>";
+                        }
+                    } else {
+                        // Seating might be generated, show room list but no faculty assigned yet
+                        if ($active_rooms_cnt > 0) {
+                            $unallot_sql = "SELECT DISTINCT r.room_no, r.floor 
+                                            FROM seating_allocation sa 
+                                            JOIN room r ON sa.room_id = r.rid 
+                                            WHERE sa.schedule_id IN ($sched_ids_str)
+                                            ORDER BY r.floor, r.room_no";
+                            $unallot_res = mysqli_query($conn, $unallot_sql);
+                            while ($row = mysqli_fetch_assoc($unallot_res)) {
+                                echo "<tr>
+                                    <td><strong>Room " . htmlspecialchars($row['room_no']) . "</strong></td>
+                                    <td>" . htmlspecialchars($row['floor']) . " Floor</td>
+                                    <td colspan='3' class='text-warning'><i class='la la-exclamation-triangle'></i> Invigilator not assigned yet</td>
+                                </tr>";
+                            }
+                        } else {
+                            echo "<tr><td colspan='5' class='text-center py-4 text-muted'>No scheduled exams or allocations found. Please check schedules.</td></tr>";
+                        }
                     }
                     ?>
                 </tbody>
@@ -334,4 +319,4 @@ function updateSlotFields(select) {
 }
 </script>
 
-<?php include_once '../templates/footer.php'; ?>
+<?php include_once '../includes/footer.php'; ?>

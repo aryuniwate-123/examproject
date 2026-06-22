@@ -2,7 +2,7 @@
 $required_role = 'admin';
 $active_menu = 'dashboard';
 $page_title = 'Admin Dashboard';
-include_once '../templates/header.php';
+include_once '../includes/header.php';
 
 // Fetch stats counts
 $classes_cnt = 0;
@@ -88,14 +88,14 @@ if ($res = mysqli_query($conn, "SELECT COUNT(DISTINCT schedule_id) FROM seating_
                 <h5 class="card-panel-title">System Actions Quick Links</h5>
             </div>
             <div class="d-flex flex-column gap-3">
-                <a href="manage_schedule.php" class="btn btn-primary btn-block mb-3 py-3">
-                    <i class="la la-calendar-plus"></i> Schedule New Exam Slot
+                <a href="manage_schedule.php" class="btn btn-primary w-100 mb-3 py-3 font-weight-bold">
+                    <i class="la la-calendar-plus" style="font-size:1.3rem;"></i> Schedule New Exam Slot
                 </a>
-                <a href="generate_seating.php" class="btn btn-secondary btn-block mb-3 py-3">
-                    <i class="la la-th-list"></i> Run Seating Allocation Engine
+                <a href="generate_seating.php" class="btn btn-secondary w-100 mb-3 py-3 font-weight-bold">
+                    <i class="la la-th-list" style="font-size:1.3rem;"></i> Run Seating Allocation Engine
                 </a>
-                <a href="faculty_allocation.php" class="btn btn-light btn-block py-3 text-dark border font-weight-bold">
-                    <i class="la la-clipboard-list text-primary"></i> Allocate Faculty Invigilator Duties
+                <a href="faculty_allocation.php" class="btn btn-light w-100 py-3 text-dark border font-weight-bold">
+                    <i class="la la-clipboard-list text-primary" style="font-size:1.3rem;"></i> Allocate Faculty Invigilator Duties
                 </a>
             </div>
         </div>
@@ -141,9 +141,9 @@ if ($res = mysqli_query($conn, "SELECT COUNT(DISTINCT schedule_id) FROM seating_
                                     </td>
                                     <td>";
                                     if ($is_allotted) {
-                                        echo "<span class='badge badge-success'>Seating Done</span>";
+                                        echo "<span class='badge bg-success'>Seating Done</span>";
                                     } else {
-                                        echo "<span class='badge badge-warning'>Not Allotted</span>";
+                                        echo "<span class='badge bg-warning text-dark'>Not Allotted</span>";
                                     }
                                 echo "</td>
                                 </tr>";
@@ -159,4 +159,4 @@ if ($res = mysqli_query($conn, "SELECT COUNT(DISTINCT schedule_id) FROM seating_
     </div>
 </div>
 
-<?php include_once '../templates/footer.php'; ?>
+<?php include_once '../includes/footer.php'; ?>

@@ -6,7 +6,7 @@ $page_title = 'System Reports';
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-include_once '../db.php';
+include_once '../includes/config.php';
 
 // --- CSV EXPORTER HANDLER ---
 if (isset($_GET['export'])) {
@@ -85,7 +85,7 @@ if (isset($_GET['export'])) {
     }
 }
 
-include_once '../templates/header.php';
+include_once '../includes/header.php';
 ?>
 
 <div class="row">
@@ -99,19 +99,12 @@ include_once '../templates/header.php';
                 <p class="text-secondary" style="font-size: 0.9rem;">
                     Generate and download the complete student seat assignments spreadsheet. This report lists all allocated students, seat numbers, grid indexes, subject codes, and scheduled exam dates.
                 </p>
-                <?php
-                $cnt_seating = mysqli_fetch_row(mysqli_query($conn, "SELECT COUNT(*) FROM seating_allocation"))[0];
-                ?>
-                <div class="my-3">
-                    <span class="badge badge-info p-2 font-weight-bold" style="font-size: 0.85rem;">
-                        <?php echo $cnt_seating; ?> active student seat records
-                    </span>
-                </div>
             </div>
-            
-            <a href="reports.php?export=seating" class="btn btn-primary btn-block mt-4">
-                <i class="la la-file-csv" style="font-size: 1.25rem;"></i> Download Seating CSV
-            </a>
+            <div class="mt-4">
+                <a href="reports.php?export=seating" class="btn btn-primary w-100 py-2 font-weight-bold">
+                    <i class="la la-download"></i> Export Seating CSV
+                </a>
+            </div>
         </div>
     </div>
 
@@ -120,58 +113,19 @@ include_once '../templates/header.php';
         <div class="card-panel h-100 d-flex flex-column justify-content-between">
             <div>
                 <div class="card-panel-header">
-                    <h5 class="card-panel-title">Faculty Invigilator Duties</h5>
+                    <h5 class="card-panel-title">Faculty Duty Assignments</h5>
                 </div>
                 <p class="text-secondary" style="font-size: 0.9rem;">
-                    Download the complete invigilator assignment duty schedule. This details which professor is monitoring which classroom on any scheduled date, including collision detection audits.
+                    Export the fair-balanced invigilator schedule. This report outlines faculty duties, mapping each professor to their allocated classroom, date, floor, and timing coordinates.
                 </p>
-                <?php
-                $cnt_duties = mysqli_fetch_row(mysqli_query($conn, "SELECT COUNT(*) FROM faculty_allocation"))[0];
-                ?>
-                <div class="my-3">
-                    <span class="badge badge-success p-2 font-weight-bold" style="font-size: 0.85rem;">
-                        <?php echo $cnt_duties; ?> total invigilation duty records
-                    </span>
-                </div>
             </div>
-            
-            <a href="reports.php?export=duties" class="btn btn-secondary btn-block mt-4">
-                <i class="la la-file-csv" style="font-size: 1.25rem;"></i> Download Duty Schedule CSV
-            </a>
+            <div class="mt-4">
+                <a href="reports.php?export=duties" class="btn btn-secondary w-100 py-2 font-weight-bold text-white">
+                    <i class="la la-download"></i> Export Duty Roster CSV
+                </a>
+            </div>
         </div>
     </div>
 </div>
 
-<div class="card-panel mt-3">
-    <div class="card-panel-header">
-        <h5 class="card-panel-title">Classroom Utilization Capacity Audit</h5>
-    </div>
-    
-    <div class="table-responsive">
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Room Name</th>
-                    <th>Floor</th>
-                    <th>Max Student Seating Capacity</th>
-                    <th>Grid Configuration</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php
-                $rooms_q = mysqli_query($conn, "SELECT * FROM room ORDER BY floor, room_no");
-                while ($row = mysqli_fetch_assoc($rooms_q)) {
-                    echo "<tr>
-                        <td><strong>Room " . htmlspecialchars($row['room_no']) . "</strong></td>
-                        <td>" . htmlspecialchars($row['floor']) . " Floor</td>
-                        <td>" . htmlspecialchars($row['capacity']) . " Seats</td>
-                        <td>" . htmlspecialchars($row['rows_count'] . " rows x " . $row['cols_count'] . " cols") . "</td>
-                    </tr>";
-                }
-                ?>
-            </tbody>
-        </table>
-    </div>
-</div>
-
-<?php include_once '../templates/header.php'; ?>
+<?php include_once '../includes/footer.php'; ?>

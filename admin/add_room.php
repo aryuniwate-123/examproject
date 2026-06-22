@@ -1,161 +1,158 @@
-<?php 
-session_start();
-?>
-<html>
-<head>
-    <title>Manage Rooms</title>
-    <link rel="stylesheet" href="common.css">
-    <?php include'../link.php' ?>
-    <style>
-    .see-button {
-        background-color: #000000; 
-        color: #ffffff;
-        border: 1px solid #000000; 
-        padding: 8px 16px; 
-        border-radius: 5px; 
-    }
-</style>
-</head>
-<body>
 <?php
-    if(isset($_POST['deleteroom'])){
-        $room = $_POST['deleteroom'];
-        $delete = "delete from room where rid = '$room'";
-        $delete_query = mysqli_query($conn, $delete);
-        if($delete_query){
-            $_SESSION['delroom'] = "Room deleted successfully";
-        }
-        else{
-            $_SESSION['delnotroom'] = "Error!! room not deleted.";
+$required_role = 'admin';
+$active_menu = 'rooms';
+$page_title = 'Manage Rooms';
+include_once '../includes/header.php';
+
+// Add Room Handler
+if (isset($_POST['addroom'])) {
+    $room_no = trim($_POST['roomno']);
+    $floor = (int)$_POST['floor'];
+    $capacity = (int)$_POST['cap'];
+    $rows = (int)$_POST['rows'];
+    $cols = (int)$_POST['cols'];
+
+    if (empty($room_no) || $capacity <= 0 || $rows <= 0 || $cols <= 0) {
+        $_SESSION['error_msg'] = "All fields are required and must be positive integers.";
+    } elseif (($rows * $cols) < $capacity) {
+        $_SESSION['error_msg'] = "The grid layout size (" . ($rows * $cols) . " desks) must be greater than or equal to the room capacity ($capacity).";
+    } else {
+        // Check if room number already exists
+        $check_sql = "SELECT rid FROM room WHERE room_no = ?";
+        $stmt = mysqli_prepare($conn, $check_sql);
+        mysqli_stmt_bind_param($stmt, "s", $room_no);
+        mysqli_stmt_execute($stmt);
+        mysqli_stmt_store_result($stmt);
+        $exists = mysqli_stmt_num_rows($stmt) > 0;
+        mysqli_stmt_close($stmt);
+
+        if ($exists) {
+            $_SESSION['error_msg'] = "Room number $room_no already exists.";
+        } else {
+            // Insert Room
+            $insert_sql = "INSERT INTO room (room_no, floor, capacity, rows_count, cols_count) VALUES (?, ?, ?, ?, ?)";
+            $stmt = mysqli_prepare($conn, $insert_sql);
+            mysqli_stmt_bind_param($stmt, "siiii", $room_no, $floor, $capacity, $rows, $cols);
+            if (mysqli_stmt_execute($stmt)) {
+                $_SESSION['success_msg'] = "Room added successfully.";
+            } else {
+                $_SESSION['error_msg'] = "Failed to add room. Database error.";
+            }
+            mysqli_stmt_close($stmt);
         }
     }
+    header("Location: add_room.php");
+    exit();
+}
+
+// Delete Room Handler
+if (isset($_POST['deleteroom'])) {
+    $rid = (int)$_POST['deleteroom'];
+    
+    $delete_sql = "DELETE FROM room WHERE rid = ?";
+    $stmt = mysqli_prepare($conn, $delete_sql);
+    mysqli_stmt_bind_param($stmt, "i", $rid);
+    if (mysqli_stmt_execute($stmt)) {
+        $_SESSION['success_msg'] = "Room deleted successfully.";
+    } else {
+        $_SESSION['error_msg'] = "Failed to delete room. It might be referenced by schedules or seating.";
+    }
+    mysqli_stmt_close($stmt);
+    
+    header("Location: add_room.php");
+    exit();
+}
 ?>
-<div class="wrapper">
-    <nav id="sidebar">
-        <div class="sidebar-header">
-            <h4>DASHBOARD</h4>   
-        </div>
-        <ul class="list-unstyled components">
-            <li>
-                <a href="add_class.php"><img src="https://img.icons8.com/ios-filled/26/ffffff/google-classroom.png"/> Classes</a>
-            </li>
-            <li>
-                <a href="add_student.php"><img src="https://img.icons8.com/ios-filled/25/ffffff/student-registration.png"/> Students</a>
-            </li>
-            <li>
-                <a href="add_room.php" class="active_link"><img src="https://img.icons8.com/metro/26/ffffff/building.png"/> Rooms</a>
-            </li>
-            <li>
-                <a href="dashboard.php"><img src="https://img.icons8.com/nolan/30/ffffff/summary-list.png"/> Allotment</a>
-            </li>
-        </ul>
-    </nav>
-    <div id="content">
-        <nav class="navbar navbar-expand-lg navbar-light bg-light">
-            <div class="container-fluid">
-                <button type="button" id="sidebarCollapse" class="btn btn-info">
-                    <img src="https://img.icons8.com/ios-filled/19/ffffff/menu--v3.png"/>
-                </button><span class="page-name"> Manage Rooms</span>
-                <button class="btn btn-dark d-inline-block d-lg-none ml-auto" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                    <img src="https://img.icons8.com/ios-filled/19/ffffff/menu--v3.png"/>
+
+<div class="row">
+    <!-- Add Room Form -->
+    <div class="col-md-4 mb-4">
+        <div class="card-panel">
+            <div class="card-panel-header">
+                <h5 class="card-panel-title">Add New Room</h5>
+            </div>
+            <form method="post" action="add_room.php">
+                <div class="form-group mb-3">
+                    <label for="roomno">Room Number</label>
+                    <input type="text" name="roomno" id="roomno" class="form-control" placeholder="e.g. 101" required>
+                </div>
+                
+                <div class="form-group mb-3">
+                    <label for="floor">Floor</label>
+                    <input type="number" name="floor" id="floor" class="form-control" min="0" max="10" placeholder="e.g. 1" required>
+                </div>
+                
+                <div class="form-group mb-3">
+                    <label for="cap">Capacity (Students)</label>
+                    <input type="number" name="cap" id="cap" class="form-control" min="1" max="150" placeholder="e.g. 30" required>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <div class="form-group">
+                            <label for="rows">Grid Rows</label>
+                            <input type="number" name="rows" id="rows" class="form-control" min="1" max="20" placeholder="e.g. 6" required>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-group">
+                            <label for="cols">Grid Cols</label>
+                            <input type="number" name="cols" id="cols" class="form-control" min="1" max="20" placeholder="e.g. 5" required>
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="submit" name="addroom" class="btn btn-primary w-100 mt-2">
+                    <i class="la la-plus"></i> Add Classroom
                 </button>
-                <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                    <ul class="nav navbar-nav ml-auto">
-                        <li class="nav-item active">
-                            <a class="nav-link" href="../logout.php">Logout</a>
-                        </li>
-                    </ul>
+            </form>
+        </div>
+    </div>
+
+    <!-- Rooms List Table -->
+    <div class="col-md-8 mb-4">
+        <div class="card-panel">
+            <div class="card-panel-header d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
+                <h5 class="card-panel-title mb-0">Active Classrooms</h5>
+                <div class="no-print">
+                    <input type="text" class="form-control form-control-sm" placeholder="Search rooms..." data-search-table="rooms-table">
                 </div>
             </div>
-        </nav>
-        <div class="main-content">
-            <?php
-            if(isset($_SESSION['room'])){
-                echo "<div class='alert alert-warning alert-dismissible fade show' role='alert'>".$_SESSION['room']."<button class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button></div>";
-                unset($_SESSION['room']);
-            }
-            if(isset($_SESSION['roomnot'])){
-                echo "<div class='alert alert-danger alert-dismissible fade show' role='alert'>".$_SESSION['roomnot']."<button class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button></div>";
-                unset($_SESSION['roomnot']);
-            }
-
-            if(isset($_SESSION['delroom'])){
-                echo "<div class='alert alert-warning alert-dismissible fade show' role='alert'>".$_SESSION['delroom']."<button class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button></div>";
-                unset($_SESSION['delroom']);
-            }
-            if(isset($_SESSION['delnotroom'])){
-                echo "<div class='alert alert-danger alert-dismissible fade show' role='alert'>".$_SESSION['delnotroom']."<button class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button></div>";
-                unset($_SESSION['delnotroom']);
-            }
-            ?>
-
-            <div class="table-responsive border">
-                <table class="table table-hover text-center">
-                    <thead class="thead-light">
+            
+            <div class="table-responsive">
+                <table class="table" id="rooms-table">
+                    <thead>
                         <tr>
-                            <th>Room No.</th>
+                            <th>Room No</th>
                             <th>Floor</th>
                             <th>Capacity</th>
-                            <th>Vacancy</th>
-                            <th></th>
-                            <th>Actions</th>
-                        </tr>   
+                            <th>Grid Size</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
                     </thead>
                     <tbody>
-                        <form action="addroom.php" method="post">
-                            <tr>
-                                <th class="py-3 bg-light">
-                                    <input class="form-control" type="number" min=0 max=815 name="roomno">
-                                </th>
-                                <th class="py-3 bg-light">
-                                    <input class="form-control" type="number" min=0 max=8 name="floor">
-                                </th>
-                                <th class="py-3 bg-light">
-                                    <input class="form-control" type="number" min=0 max=80 name="cap">
-                                </th>
-                                <th class="py-3 bg-light"></th>
-                                <th class="py-3 bg-light"></th>
-                                <th class="py-3 bg-light">
-                                    <button class="btn btn-primary" name="addroom">Add</button>
-                                </th>
-                            </tr>  
-                        </form>
                         <?php
-                        $selectclass = "SELECT rid, room_no, floor, capacity, COALESCE(SUM(total), 0) AS filled FROM batch RIGHT JOIN room ON batch.room_id = room.rid GROUP BY rid";
-                        $selectclassquery = mysqli_query($conn, $selectclass);
-                        if($selectclassquery){
-                            while ($row = mysqli_fetch_assoc($selectclassquery)) {
-                                $vacancy = $row['capacity'] - $row['filled'];
-                                // If vacancy goes negative for any reason, treat it as a full room
-                                if ($vacancy <= 0) {
-                                    $vacancy_display = "Room is full";
-                                } else {
-                                    $vacancy_display = $vacancy;
-                                }
+                        $select_sql = "SELECT * FROM room ORDER BY floor, room_no";
+                        $result = mysqli_query($conn, $select_sql);
+                        if (mysqli_num_rows($result) > 0) {
+                            while ($row = mysqli_fetch_assoc($result)) {
                                 echo "<tr>
-                                    <td>".$row['room_no']."</td>
-                                    <td>".$row['floor']."</td>
-                                    <td>".$row['capacity']."</td>
-                                    <td>".$vacancy_display."</td>
-                                    <td>
-                                        <div class='text-center'>
-                                            <form action='display_allotment.php' method='post'>
-                                                <button class='btn btn-light px-1 py-0 see-button' type='submit' value='".$row['rid']."' name='display'>See</button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <form method='post'>
-                                            <button class='btn btn-light px-1 py-0' type='submit' value='".$row['rid']."' name='deleteroom'>
-                                                <img src='https://img.icons8.com/color/25/000000/delete-forever.png'/>
+                                    <td><strong>Room " . htmlspecialchars($row['room_no']) . "</strong></td>
+                                    <td>" . htmlspecialchars($row['floor']) . " Floor</td>
+                                    <td>" . htmlspecialchars($row['capacity']) . " Students</td>
+                                    <td>" . htmlspecialchars($row['rows_count'] . " x " . $row['cols_count']) . " grid</td>
+                                    <td class="text-end">
+                                        <form method="post" action="add_room.php" onsubmit="return confirm('Are you sure you want to delete this room?');' style='display:inline;'>
+                                            <input type='hidden' name='deleteroom' value='" . $row['rid'] . "'>
+                                            <button type='submit' class='btn btn-light btn-sm text-danger p-1' title='Delete Room'>
+                                                <i class='la la-trash-alt' style='font-size:1.2rem;'></i>
                                             </button>
                                         </form>
                                     </td>
                                 </tr>";
                             }
-                        }
-                        else{
-                            echo "<tr><td colspan='6'>No rooms available.</td></tr>";
+                        } else {
+                            echo "<tr><td colspan='5' class='text-center py-4 text-muted'>No rooms registered in the system.</td></tr>";
                         }
                         ?>
                     </tbody>
@@ -164,6 +161,5 @@ session_start();
         </div>
     </div>
 </div>
-<?php include'footer.php' ?>
-</body>
-</html>
+
+<?php include_once '../includes/footer.php'; ?>

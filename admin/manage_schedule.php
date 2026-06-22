@@ -2,7 +2,7 @@
 $required_role = 'admin';
 $active_menu = 'schedule';
 $page_title = 'Manage Exam Schedules';
-include_once '../templates/header.php';
+include_once '../includes/header.php';
 
 // Add Schedule Handler
 if (isset($_POST['addschedule'])) {
@@ -78,7 +78,7 @@ if (isset($_POST['deleteschedule'])) {
                 <h5 class="card-panel-title">Schedule New Exam</h5>
             </div>
             <form method="post" action="">
-                <div class="form-group">
+                <div class="form-group mb-3">
                     <label for="subject">Subject & Class</label>
                     <select name="subject" id="subject" class="form-control" required>
                         <option value="">-- Select Subject --</option>
@@ -94,22 +94,22 @@ if (isset($_POST['deleteschedule'])) {
                     </select>
                 </div>
                 
-                <div class="form-group">
+                <div class="form-group mb-3">
                     <label for="date">Exam Date</label>
                     <input type="date" name="date" id="date" class="form-control" min="<?php echo date('Y-m-d'); ?>" required>
                 </div>
                 
-                <div class="form-group">
+                <div class="form-group mb-3">
                     <label for="start">Start Time</label>
                     <input type="time" name="start" id="start" class="form-control" required>
                 </div>
                 
-                <div class="form-group">
+                <div class="form-group mb-3">
                     <label for="end">End Time</label>
                     <input type="time" name="end" id="end" class="form-control" required>
                 </div>
                 
-                <button type="submit" name="addschedule" class="btn btn-primary btn-block mt-4">
+                <button type="submit" name="addschedule" class="btn btn-primary w-100 mt-3">
                     <i class="la la-calendar-plus"></i> Add Schedule
                 </button>
             </form>
@@ -134,7 +134,7 @@ if (isset($_POST['deleteschedule'])) {
                             <th>Date</th>
                             <th>Time Slot</th>
                             <th>Status</th>
-                            <th class="text-right">Actions</th>
+                            <th class="text-end">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -160,12 +160,12 @@ if (isset($_POST['deleteschedule'])) {
                                     <td>" . date('h:i A', strtotime($row['start_time'])) . " - " . date('h:i A', strtotime($row['end_time'])) . "</td>
                                     <td>";
                                     if ($cnt > 0) {
-                                        echo "<span class='badge badge-success'>Allocated ($cnt)</span>";
+                                        echo "<span class='badge bg-success'>Allocated ($cnt)</span>";
                                     } else {
-                                        echo "<span class='badge badge-warning'>Not Allocated</span>";
+                                        echo "<span class='badge bg-warning text-dark'>Not Allocated</span>";
                                     }
                                 echo "</td>
-                                    <td class='text-right'>
+                                    <td class="text-end">
                                         <form method='post' action='' onsubmit='return confirm(\"Are you sure you want to delete this schedule? This will delete all seating and invigilator duties!\");' style='display:inline;'>
                                             <input type='hidden' name='deleteschedule' value='" . $row['schedule_id'] . "'>
                                             <button type='submit' class='btn btn-light btn-sm text-danger p-1' title='Delete Schedule'>
@@ -186,4 +186,4 @@ if (isset($_POST['deleteschedule'])) {
     </div>
 </div>
 
-<?php include_once '../templates/footer.php'; ?>
+<?php include_once '../includes/footer.php'; ?>

@@ -2,7 +2,7 @@
 $required_role = 'admin';
 $active_menu = 'subjects';
 $page_title = 'Manage Subjects';
-include_once '../templates/header.php';
+include_once '../includes/header.php';
 
 // Add Subject Handler
 if (isset($_POST['addsubject'])) {
@@ -68,17 +68,17 @@ if (isset($_POST['deletesubject'])) {
                 <h5 class="card-panel-title">Add New Subject</h5>
             </div>
             <form method="post" action="">
-                <div class="form-group">
+                <div class="form-group mb-3">
                     <label for="subcode">Subject Code</label>
                     <input type="text" name="subcode" id="subcode" class="form-control" placeholder="e.g. MCA301" required>
                 </div>
                 
-                <div class="form-group">
+                <div class="form-group mb-3">
                     <label for="subname">Subject Name</label>
                     <input type="text" name="subname" id="subname" class="form-control" placeholder="e.g. Data Structures" required>
                 </div>
                 
-                <div class="form-group">
+                <div class="form-group mb-3">
                     <label for="subclass">Mapped Class</label>
                     <select name="subclass" id="subclass" class="form-control" required>
                         <option value="">-- Select Class --</option>
@@ -91,7 +91,7 @@ if (isset($_POST['deletesubject'])) {
                     </select>
                 </div>
                 
-                <button type="submit" name="addsubject" class="btn btn-primary btn-block mt-4">
+                <button type="submit" name="addsubject" class="btn btn-primary w-100 mt-3">
                     <i class="la la-plus"></i> Add Subject
                 </button>
             </form>
@@ -115,7 +115,7 @@ if (isset($_POST['deletesubject'])) {
                             <th>Code</th>
                             <th>Subject Name</th>
                             <th>Class Mapped</th>
-                            <th class="text-right">Actions</th>
+                            <th class="text-end">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -128,10 +128,10 @@ if (isset($_POST['deletesubject'])) {
                         if (mysqli_num_rows($result) > 0) {
                             while ($row = mysqli_fetch_assoc($result)) {
                                 echo "<tr>
-                                    <td><span class='badge badge-info font-weight-bold px-2 py-1'>" . htmlspecialchars($row['subject_code']) . "</span></td>
+                                    <td><span class='badge bg-info text-dark font-weight-bold px-2 py-1'>" . htmlspecialchars($row['subject_code']) . "</span></td>
                                     <td><strong>" . htmlspecialchars($row['subject_name']) . "</strong></td>
                                     <td>" . htmlspecialchars($row['year'] . " " . $row['dept'] . " " . $row['division']) . "</td>
-                                    <td class='text-right'>
+                                    <td class="text-end">
                                         <form method='post' action='' onsubmit='return confirm(\"Are you sure you want to delete this subject? This will delete all mapped exam schedules!\");' style='display:inline;'>
                                             <input type='hidden' name='deletesubject' value='" . $row['subject_id'] . "'>
                                             <button type='submit' class='btn btn-light btn-sm text-danger p-1' title='Delete Subject'>
@@ -152,4 +152,4 @@ if (isset($_POST['deletesubject'])) {
     </div>
 </div>
 
-<?php include_once '../templates/footer.php'; ?>
+<?php include_once '../includes/footer.php'; ?>
